@@ -1,32 +1,25 @@
-name: Enviar ranking semanal
+name: Daily Ranking
 
 on:
   schedule:
-    - cron: '0 12 * * 1'  # 每周一12点UTC时间运行
-  workflow_dispatch:  # 支持手动触发
+    - cron: "0 15 * * *" # UTC时间每天12:30触发（你调整时区）
 
 jobs:
-  run:
+  run-bot:
     runs-on: ubuntu-latest
     steps:
-      - name: 🧾 Checkout code
-        uses: actions/checkout@v3
-
-      - name: 🐍 Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: 📦 Install dependencies
-        run: |
-          pip install -r requirements.txt
-
-      - name: 🔐 Create credentials.json
-        run: |
-          echo "${{ secrets.CREDENTIALS_JSON }}" > credentials.json
-
-      - name: 🚀 Run bot
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_GROUP_ID: ${{ secrets.TELEGRAM_GROUP_ID }}
-        run: python weekly_ranking_bot_es.py
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+    - name: Install dependencies
+      run: pip install gspread oauth2client python-telegram-bot --quiet
+    - name: Run daily ranking script
+      env:
+        TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+        GROUP_ID: ${{ secrets.GROUP_ID }}
+        GOOGLE_CREDS_JSON: ${{ secrets.GOOGLE_CREDS_JSON }}
+      run: |
+        echo "$GOOGLE_CREDS_JSON" > credentials.json
+        python daily_ranking.py
